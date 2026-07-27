@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "echo \"Nenhum teste configurado ainda\" && exit 0"
+    "test": "echo \"Nenhum teste configurado ainda\" && exit 0",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
