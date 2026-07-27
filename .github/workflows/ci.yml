@@ -33,5 +33,5 @@ jobs:
             - name: Rodando a Build
               run: npm run build
 
-            - name: Deploy para vercel
-              run: npx vercel --prod --token=${{secrets.SECRET_ACTION}}
+            # - name: Deploy para vercel
+            # run: npx vercel --prod --yes --token=${{secrets.SECRET_ACTION}}
