@@ -30,6 +30,7 @@ model User {
   profileImage String?    @map("profile_image")
   bio          String?
   createdAt    DateTime   @default(now()) @map("created_at")
+  role         String   @default("volunteer")
 
   church       Church?    @relation(fields: [churchId], references: [id], onDelete: Cascade) 
   userRoles    UserRole[]
