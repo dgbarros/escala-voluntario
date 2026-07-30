@@ -38,15 +38,15 @@ export async function login(formData: FormData) {
     }
       
     case 'admin':{
-      redirect('/dashboard/admin')
+      redirect('/admin')
     }
       
     case 'Leader':{
-      redirect('/dashboard/lider')
+      redirect('/lider')
     }
       
     case 'volunteer':{
-      redirect('/dashboard/escalas')
+      redirect('/escalas')
     }
       
     default:{
