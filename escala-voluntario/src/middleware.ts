@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const rotasProtegidas = ["/admin-master", "/admin", "/lider", "/escalas"];
+  const rotasProtegidas = ["/admin-master", "/admin", "/lider", "/voluntario"];
   const estaTentandoAcessarRotaProtegida = rotasProtegidas.some((rota) =>
     request.nextUrl.pathname.startsWith(rota),
   );

@@ -46,7 +46,7 @@ export async function login(formData: FormData) {
     }
       
     case 'volunteer':{
-      redirect('/escalas')
+      redirect('/voluntario')
     }
       
     default:{
