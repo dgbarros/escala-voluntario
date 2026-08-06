@@ -1,0 +1,37 @@
+name: Pipeline CI/CD 
+
+on:
+     push:
+        branches: [dev]
+
+jobs:
+    build-and-deploy: 
+        runs-on: ubuntu-latest
+
+        defaults:
+          run:
+            working-directory: ./escala-voluntario
+
+        steps: 
+            - name: Checkout código
+              uses: actions/checkout@v4
+            
+            - name: Configurando Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: '20'
+            
+            - name: Instalando dependências 
+              run: npm ci
+
+            - name: Lint
+              run: npm run lint 
+            
+            - name: Testes
+              run: npm test
+
+            - name: Rodando a Build
+              run: npm run build
+
+            # - name: Deploy para vercel
+            # run: npx vercel --prod --yes --token=${{secrets.SECRET_ACTION}}
