@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,13 +14,14 @@ import {
 import { ArrowLeft, Building2, Send, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 
-import { criarIgrejaComAdmins } from "@/actions/church-actions";
+import { useRouter } from "next/navigation";
 
 export default function NovaIgrejaForm() {
   const [nome, setNome] = useState("");
   const [cnpj, setCnpj] = useState("");
-  const [isPending, startTransition] = useTransition();
   const [telefone, setTelefone] = useState("");
+  const [isPending, setIsPending] = useState(false);
+  const router = useRouter();
 
   const [admins, setAdmins] = useState([{ id: 1, email: "" }]);
 
@@ -74,7 +75,7 @@ export default function NovaIgrejaForm() {
     if (errors.admins) setErrors({ ...errors, admins: "" });
   };
 
-  const handleSalvar = () => {
+  const handleSalvar = async () => {
     const novosErros: { [key: string]: string } = {};
 
     if (!nome.trim()) novosErros.nome = "O nome da igreja é obrigatório.";
@@ -101,24 +102,41 @@ export default function NovaIgrejaForm() {
       return;
     }
 
-    startTransition(async () => {
-      try {
-        const resultado = await criarIgrejaComAdmins({
+    setIsPending(true);
+
+    try {
+      // 1. Extraímos apenas os textos de e-mail da sua lista de objetos [{id: 1, email: "..."}]
+      const listaDeEmails = admins.map((a) => a.email);
+
+      // 2. Chamamos a nova API via POST
+      const response = await fetch("/api/churches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           nome,
           cnpj,
           telefone,
-          admins: admins.map((a) => a.email),
-        });
+          admins: listaDeEmails,
+        }),
+      });
 
-        if (resultado.sucesso) {
-          alert("Igreja e Administradores criados com sucesso!");
-        } else {
-          setErrors({ geral: resultado.erro || "Erro desconhecido" });
-        }
-      } catch (error) {
-        setErrors({ geral: "Falha na comunicação com o servidor." });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ geral: data.error || "Erro ao cadastrar igreja." });
+        setIsPending(false);
+        return;
       }
-    });
+
+      // 3. Sucesso! Mostra um alerta amigável e redireciona de volta para a lista
+      alert(
+        "Igreja criada! O link de acesso foi enviado para os administradores.",
+      );
+      router.push("/admin-master"); // ou a rota que mostra a tabela de igrejas
+    } catch (err) {
+      setErrors({ geral: "Falha na comunicação com o servidor." });
+      setIsPending(false);
+    }
   };
 
   return (

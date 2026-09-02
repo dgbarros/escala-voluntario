@@ -1,8 +1,7 @@
-// src/components/auth/login-form.tsx
 "use client";
 
 import { useState } from "react";
-import { login } from "@/actions/auth.actions";
+import { useRouter } from "next/navigation"; 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,15 +12,45 @@ import Link from "next/link";
 export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  
+  const router = useRouter(); 
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); 
     setIsPending(true);
     setError(null);
 
-    const result = await login(formData);
+    
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email");
+    const password = formData.get("password");
 
-    if (result?.error) {
-      setError(result.error);
+    try {
+     
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Ocorreu um erro ao fazer login.");
+        setIsPending(false);
+        return;
+      }
+
+    
+      if (data.success && data.redirectUrl) {
+        router.push(data.redirectUrl);
+      }
+      
+    } catch (err) {
+      setError("Falha de comunicação com o servidor.");
       setIsPending(false);
     }
   }
@@ -49,7 +78,8 @@ export function LoginForm() {
         </CardHeader>
 
         <CardContent className="mt-4 pb-8">
-          <form action={handleSubmit} className="space-y-5">
+          {/* Trocamos 'action' por 'onSubmit' para rodar a função client-side */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label
                 htmlFor="email"
@@ -99,7 +129,7 @@ export function LoginForm() {
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 text-center font-medium bg-red-50 p-2 rounded-lg">
+              <p className="text-sm text-red-500 text-center font-medium bg-red-50 p-2 rounded-lg border border-red-100">
                 {error}
               </p>
             )}
