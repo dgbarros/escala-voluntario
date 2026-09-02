@@ -42,7 +42,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     nome: nomeCompleto,
     email: authUser.email || "",
     cargoDisplay: nomesCargos[roleNoBanco] || "Voluntário",
-    iniciais: iniciais.padEnd(2, "O") 
+    iniciais: iniciais
   };
 
   return (
