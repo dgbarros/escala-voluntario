@@ -49,7 +49,7 @@ export function LoginForm() {
         router.push(data.redirectUrl);
       }
       
-    } catch (err) {
+    } catch (error) {
       setError("Falha de comunicação com o servidor.");
       setIsPending(false);
     }
