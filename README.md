@@ -4,7 +4,7 @@ Um sistema SaaS completo e responsivo desenvolvido para facilitar a gestão de e
 
 ## Tecnologias e Decisões de Arquitetura
 
-Este projeto foi construído utilizando tecnologias modernas focadas em escalabilidade, segurança e experiência do desenvolvedor (DX). Abaixo estão as ferramentas escolhidas e o motivo de cada adoção:
+Este projeto foi construído utilizando tecnologias modernas focadas em escalabilidade, segurança e experiência do desenvolvedor. Abaixo estão as ferramentas escolhidas e o motivo de cada adoção:
 
 *   **Next.js (React + Node.js + TypeScript):** 
     O framework principal da aplicação. Escolhido pela sua excelente integração Full Stack, permitindo lidar com a interface (React), o backend (Node.js/API Routes) e a tipagem estática (TypeScript) em um único repositório. O Next.js garante praticidade, excelente usabilidade e alta escalabilidade com recursos nativos como SSR (Server-Side Rendering) e Server Components.
