@@ -1,104 +1,143 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Building2, Send, Plus, Trash2 } from "lucide-react"
-import Link from "next/link"
+import { useState, useTransition } from "react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ArrowLeft, Building2, Send, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+
+import { useRouter } from "next/navigation";
 
 export default function NovaIgrejaForm() {
-  // 1. Estados dos campos principais
-  const [nome, setNome] = useState("")
-  const [cnpj, setCnpj] = useState("")
-  const [telefone, setTelefone] = useState("")
-  
-  // Estado para controlar a lista de e-mails dos administradores
-  const [admins, setAdmins] = useState([{ id: 1, email: "" }])
-  
-  // Estado para controlar os erros visuais
-  const [errors, setErrors] = useState<{ [key: string]: string }>({})
+  const [nome, setNome] = useState("");
+  const [cnpj, setCnpj] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [isPending, setIsPending] = useState(false);
+  const router = useRouter();
 
-  // 2. Funções de Máscara
+  const [admins, setAdmins] = useState([{ id: 1, email: "" }]);
+
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, "") // Remove tudo que não é número
-    
+    let value = e.target.value.replace(/\D/g, ""); // Remove tudo que não é número
+
     // Aplica a máscara: 00.000.000/0000-00
-    value = value.replace(/^(\d{2})(\d)/, "$1.$2")
-    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-    value = value.replace(/\.(\d{3})(\d)/, ".$1/$2")
-    value = value.replace(/(\d{4})(\d)/, "$1-$2")
-    
-    setCnpj(value.substring(0, 18))
-    if (errors.cnpj) setErrors({ ...errors, cnpj: "" })
-  }
+    value = value.replace(/^(\d{2})(\d)/, "$1.$2");
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+    value = value.replace(/\.(\d{3})(\d)/, ".$1/$2");
+    value = value.replace(/(\d{4})(\d)/, "$1-$2");
+
+    setCnpj(value.substring(0, 18));
+    if (errors.cnpj) setErrors({ ...errors, cnpj: "" });
+  };
 
   const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, "")
-    
-    if (value.length > 11) value = value.substring(0, 11)
+    let value = e.target.value.replace(/\D/g, "");
 
-    // Aplica máscara para Fixo ou Celular
+    if (value.length > 11) value = value.substring(0, 11);
+
     if (value.length > 2) {
-      value = value.replace(/^(\d{2})(\d)/g, "($1) $2")
+      value = value.replace(/^(\d{2})(\d)/g, "($1) $2");
     }
     if (value.length > 9) {
-      value = value.replace(/(\d{5})(\d)/, "$1-$2") // Celular
+      value = value.replace(/(\d{5})(\d)/, "$1-$2");
     } else if (value.length > 8) {
-      value = value.replace(/(\d{4})(\d)/, "$1-$2") // Fixo
+      value = value.replace(/(\d{4})(\d)/, "$1-$2");
     }
 
-    setTelefone(value)
-    if (errors.telefone) setErrors({ ...errors, telefone: "" })
-  }
+    setTelefone(value);
+    if (errors.telefone) setErrors({ ...errors, telefone: "" });
+  };
 
-  // 3. Funções para gerenciar os Administradores
   const adicionarAdmin = () => {
-    setAdmins([...admins, { id: Date.now(), email: "" }])
-  }
+    setAdmins([...admins, { id: Date.now(), email: "" }]);
+  };
 
   const removerAdmin = (id: number) => {
-    setAdmins(admins.filter((admin) => admin.id !== id))
-  }
+    setAdmins(admins.filter((admin) => admin.id !== id));
+  };
 
   const atualizarEmailAdmin = (id: number, novoEmail: string) => {
-    setAdmins(admins.map(admin => admin.id === id ? { ...admin, email: novoEmail } : admin))
-    if (errors.admins) setErrors({ ...errors, admins: "" })
-  }
+    setAdmins(
+      admins.map((admin) =>
+        admin.id === id ? { ...admin, email: novoEmail } : admin,
+      ),
+    );
+    if (errors.admins) setErrors({ ...errors, admins: "" });
+  };
 
-  // 4. Função de Validação ao Salvar
-  const handleSalvar = () => {
-    const novosErros: { [key: string]: string } = {}
+  const handleSalvar = async () => {
+    const novosErros: { [key: string]: string } = {};
 
-    if (!nome.trim()) novosErros.nome = "O nome da igreja é obrigatório."
-    
+    if (!nome.trim()) novosErros.nome = "O nome da igreja é obrigatório.";
+
     if (!cnpj) {
-      novosErros.cnpj = "O CNPJ é obrigatório."
+      novosErros.cnpj = "O CNPJ é obrigatório.";
     } else if (cnpj.length < 18) {
-      novosErros.cnpj = "Digite um CNPJ válido."
+      novosErros.cnpj = "Digite um CNPJ válido.";
     }
 
     if (!telefone) {
-      novosErros.telefone = "O telefone é obrigatório."
+      novosErros.telefone = "O telefone é obrigatório.";
     } else if (telefone.length < 14) {
-      novosErros.telefone = "Digite um telefone válido."
+      novosErros.telefone = "Digite um telefone válido.";
     }
 
-    const algumAdminVazio = admins.some(admin => !admin.email.trim())
+    const algumAdminVazio = admins.some((admin) => !admin.email.trim());
     if (algumAdminVazio) {
-      novosErros.admins = "Preencha todos os e-mails dos administradores."
+      novosErros.admins = "Preencha todos os e-mails dos administradores.";
     }
 
-    // Se houver erros, atualiza o estado visual e interrompe a função
     if (Object.keys(novosErros).length > 0) {
-      setErrors(novosErros)
-      return
+      setErrors(novosErros);
+      return;
     }
 
-    // Se passou, prossegue
-    alert("Validação passou! Link enviado com sucesso.")
-  }
+    setIsPending(true);
+
+    try {
+      // 1. Extraímos apenas os textos de e-mail da sua lista de objetos [{id: 1, email: "..."}]
+      const listaDeEmails = admins.map((a) => a.email);
+
+      // 2. Chamamos a nova API via POST
+      const response = await fetch("/api/churches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome,
+          cnpj,
+          telefone,
+          admins: listaDeEmails,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ geral: data.error || "Erro ao cadastrar igreja." });
+        setIsPending(false);
+        return;
+      }
+
+      // 3. Sucesso! Mostra um alerta amigável e redireciona de volta para a lista
+      alert(
+        "Igreja criada! O link de acesso foi enviado para os administradores.",
+      );
+      router.push("/admin-master"); // ou a rota que mostra a tabela de igrejas
+    } catch (err) {
+      setErrors({ geral: "Falha na comunicação com o servidor." });
+      setIsPending(false);
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-in slide-in-from-bottom-4 duration-500 p-4">
@@ -127,7 +166,6 @@ export default function NovaIgrejaForm() {
 
         <CardContent className="pt-8">
           <form className="space-y-8">
-            {/* SESSÃO 1: DADOS DA IGREJA */}
             <div className="space-y-4">
               <h3 className="text-base font-semibold text-gray-900 border-b pb-2 flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-gray-400" />
@@ -136,47 +174,81 @@ export default function NovaIgrejaForm() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="nome" className={errors.nome ? "text-red-500" : ""}>Nome da Igreja / Congregação</Label>
+                  <Label
+                    htmlFor="nome"
+                    className={errors.nome ? "text-red-500" : ""}
+                  >
+                    Nome da Igreja / Congregação
+                  </Label>
                   <Input
                     id="nome"
                     placeholder="Ex: Casa do Reino"
                     value={nome}
                     onChange={(e) => {
-                      setNome(e.target.value)
-                      if (errors.nome) setErrors({ ...errors, nome: "" })
+                      setNome(e.target.value);
+                      if (errors.nome) setErrors({ ...errors, nome: "" });
                     }}
-                    className={errors.nome ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    className={
+                      errors.nome
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
                   />
-                  {errors.nome && <span className="text-xs text-red-500">{errors.nome}</span>}
+                  {errors.nome && (
+                    <span className="text-xs text-red-500">{errors.nome}</span>
+                  )}
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="cnpj" className={errors.cnpj ? "text-red-500" : ""}>CNPJ</Label>
-                  <Input 
-                    id="cnpj" 
-                    placeholder="00.000.000/0000-00" 
+                  <Label
+                    htmlFor="cnpj"
+                    className={errors.cnpj ? "text-red-500" : ""}
+                  >
+                    CNPJ
+                  </Label>
+                  <Input
+                    id="cnpj"
+                    placeholder="00.000.000/0000-00"
                     value={cnpj}
                     onChange={handleCnpjChange}
-                    className={errors.cnpj ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    className={
+                      errors.cnpj
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
                   />
-                  {errors.cnpj && <span className="text-xs text-red-500">{errors.cnpj}</span>}
+                  {errors.cnpj && (
+                    <span className="text-xs text-red-500">{errors.cnpj}</span>
+                  )}
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="telefone" className={errors.telefone ? "text-red-500" : ""}>Telefone Principal</Label>
-                  <Input 
-                    id="telefone" 
-                    placeholder="(00) 00000-0000" 
+                  <Label
+                    htmlFor="telefone"
+                    className={errors.telefone ? "text-red-500" : ""}
+                  >
+                    Telefone Principal
+                  </Label>
+                  <Input
+                    id="telefone"
+                    placeholder="(00) 00000-0000"
                     value={telefone}
                     onChange={handleTelefoneChange}
-                    className={errors.telefone ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    className={
+                      errors.telefone
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
                   />
-                  {errors.telefone && <span className="text-xs text-red-500">{errors.telefone}</span>}
+                  {errors.telefone && (
+                    <span className="text-xs text-red-500">
+                      {errors.telefone}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* SESSÃO 3: ADMINISTRADORES LOCAIS */}
             <div className="space-y-4 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
               <div className="flex justify-between items-center border-b border-blue-200 pb-2">
                 <div>
@@ -213,7 +285,9 @@ export default function NovaIgrejaForm() {
                         placeholder="pastor@igreja.com"
                         className={`bg-white ${errors.admins ? "border-red-500" : ""}`}
                         value={admin.email}
-                        onChange={(e) => atualizarEmailAdmin(admin.id, e.target.value)}
+                        onChange={(e) =>
+                          atualizarEmailAdmin(admin.id, e.target.value)
+                        }
                       />
                     </div>
                     {admins.length > 1 && (
@@ -228,11 +302,12 @@ export default function NovaIgrejaForm() {
                     )}
                   </div>
                 ))}
-                {errors.admins && <span className="text-xs text-red-500">{errors.admins}</span>}
+                {errors.admins && (
+                  <span className="text-xs text-red-500">{errors.admins}</span>
+                )}
               </div>
             </div>
 
-            {/* BOTÕES DE AÇÃO */}
             <div className="flex gap-3 justify-end pt-6 border-t">
               <Link
                 href="/admin-master"
@@ -244,9 +319,10 @@ export default function NovaIgrejaForm() {
                 type="button"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8"
                 onClick={handleSalvar}
+                disabled={isPending}
               >
                 <Send className="mr-2 h-4 w-4" />
-                Salvar e Enviar Link 
+                {isPending ? "Processando..." : "Salvar e Enviar Link"}
               </Button>
             </div>
           </form>

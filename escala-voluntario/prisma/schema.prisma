@@ -7,108 +7,159 @@ generator client {
 }
 
 model Church {
-  id                 String         @id @default(uuid())
-  name               String
-  cnpj               String         @unique
-  status             String         @default("active") // active, inactive
-  createdAt          DateTime       @default(now()) @map("created_at")
-  updatedAt          DateTime       @updatedAt @map("updated_at")
+  id           String        @id @default(uuid())
+  name         String
+  cnpj         String        @unique
+  status       String        @default("active") // active, inactive
+  enabled      Boolean       @default(true) // SOFT DELETE
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  users              User[]
-  userRoles          UserRole[]
-  departments        Department[]
-  inviteTokens       InviteToken[]
+  users        User[]
+  userRoles    UserRole[]
+  departments  Department[]
+  inviteTokens InviteToken[]
 
   @@map("churches")
 }
 
 model User {
-  id           String     @id @default(uuid())
+  id           String        @id @default(uuid())
   name         String
-  email        String     @unique
-  churchId     String?    @map("church_id")
-  profileImage String?    @map("profile_image")
+  email        String        @unique
+  churchId     String?       @map("church_id")
+  profileImage String?       @map("profile_image")
   bio          String?
-  createdAt    DateTime   @default(now()) @map("created_at")
-  role         String   @default("volunteer")
+  customTitle  String?       @map("custom_title") // Ex: "Pastor Presidente"
+  enabled      Boolean       @default(true) // SOFT DELETE
+  createdAt    DateTime      @default(now()) @map("created_at")
+  role         String        @default("volunteer")
 
-  church       Church?    @relation(fields: [churchId], references: [id], onDelete: Cascade) 
+  church       Church?       @relation(fields: [churchId], references: [id], onDelete: Cascade) 
   userRoles    UserRole[]
   
   // Relacionamentos com departamentos (como líder ou criador de agendas)
   ledDepartments Department[] @relation("DepartmentLeader")
   schedules      Schedule[]
+  resetTokens    PasswordResetToken[] // Relacionamento com Tokens de Resend
 
   @@map("users")
 }
 
 model Role {
-  id          String     @id @default(uuid())
-  name        String     @unique // super_admin, admin, leader, volunteer
+  id          String        @id @default(uuid())
+  name        String        @unique // super_admin, admin, leader, volunteer
   description String?
-  userRoles   UserRole[]
+  enabled     Boolean       @default(true) // SOFT DELETE
+  
+  userRoles       UserRole[]
+  rolePermissions RolePermission[] // Relacionamento com as Permissões
 
   @@map("roles")
 }
 
-// Tabela do "Grupo de WhatsApp" e da "Fila de Espera"
-model UserRole {
-  id         String   @id @default(uuid())
-  userId     String   @map("user_id")
-  roleId     String   @map("role_id")
-  churchId   String?   @map("church_id")
-  departmentId String?  @map("department_id") // Vincula o voluntário ao departamento dele
-  approved   Boolean  @default(false) // Se false -> Cai na aba de "Solicitações" do Admin
-  createdAt  DateTime @default(now()) @map("created_at")
+// NOVA TABELA: PERMISSÕES
+model Permission {
+  id          String        @id @default(uuid())
+  name        String        @unique // Ex: 'criar_igreja', 'editar_escala'
+  description String?
+  enabled     Boolean       @default(true) // SOFT DELETE
 
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role       Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  church     Church?   @relation(fields: [churchId], references: [id], onDelete: Cascade)
-  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+// NOVA TABELA: LIGAÇÃO CARGO x PERMISSÃO
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
+  enabled      Boolean    @default(true) // SOFT DELETE
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId]) // Evita duplicar a mesma permissão para o mesmo cargo
+  @@map("role_permissions")
+}
+
+model UserRole {
+  id           String       @id @default(uuid())
+  userId       String       @map("user_id")
+  roleId       String       @map("role_id")
+  churchId     String?      @map("church_id")
+  departmentId String?      @map("department_id") // Vincula o voluntário ao departamento dele
+  approved     Boolean      @default(false) // Se false -> Cai na aba de "Solicitações" do Admin
+  enabled      Boolean      @default(true) // SOFT DELETE
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  church       Church?      @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  department   Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
   @@map("user_roles")
 }
 
 model Department {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   name      String
-  churchId  String   @map("church_id")
-  leaderId  String?  @map("leader_id") // O Admin clica e define o User ID aqui (Estilo Admin do Whats)
+  churchId  String       @map("church_id")
+  leaderId  String?      @map("leader_id") // O Admin clica e define o User ID aqui (Estilo Admin do Whats)
+  enabled   Boolean      @default(true) // SOFT DELETE
 
-  church    Church     @relation(fields: [churchId], references: [id], onDelete: Cascade)
-  leader    User?      @relation("DepartmentLeader", fields: [leaderId], references: [id], onDelete: SetNull)
-  userRoles UserRole[]
-  schedules Schedule[]
+  church       Church        @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  leader       User?         @relation("DepartmentLeader", fields: [leaderId], references: [id], onDelete: SetNull)
+  userRoles    UserRole[]
+  schedules    Schedule[]
   inviteTokens InviteToken[]
 
   @@map("departments")
 }
 
-// Tabela que controla os links de cadastro enviados pelo Admin
 model InviteToken {
-  id           String   @id @default(uuid())
-  token        String   @unique @default(uuid()) // O código secreto que vai na URL
-  churchId     String   @map("church_id")
-  departmentId String   @map("department_id")
-  used         Boolean  @default(false) // Fica true quando o voluntário usa o link
-  createdAt    DateTime @default(now()) @map("created_at")
-  expiresAt    DateTime @map("expires_at") // O link pode expirar em 7 dias, por exemplo
+  id           String       @id @default(uuid())
+  token        String       @unique @default(uuid()) // O código secreto que vai na URL
+  churchId     String       @map("church_id")
+  departmentId String       @map("department_id")
+  used         Boolean      @default(false) // Fica true quando o voluntário usa o link
+  createdAt    DateTime     @default(now()) @map("created_at")
+  expiresAt    DateTime     @map("expires_at") // O link pode expirar em 7 dias, por exemplo
 
-  church     Church     @relation(fields: [churchId], references: [id], onDelete: Cascade)
-  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  church       Church       @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  department   Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   @@map("invite_tokens")
 }
 
 model Schedule {
-  id           String     @id @default(uuid())
-  departmentId String     @map("department_id")
-  date         DateTime   @db.Date
+  id           String       @id @default(uuid())
+  name         String       // Adicionado: Nome do culto (Faltava na modelagem anterior)
+  departmentId String       @map("department_id")
+  date         DateTime     @db.Date
   time         String
-  createdBy    String     @map("created_by")
+  guidelines   String?      // Adicionado: Diretrizes (Paleta de Cores e Repertório)
+  createdBy    String       @map("created_by")
+  enabled      Boolean      @default(true) // SOFT DELETE
 
-  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  creator      User       @relation(fields: [createdBy], references: [id])
+  department   Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  creator      User         @relation(fields: [createdBy], references: [id])
 
   @@map("schedules")
+}
+
+// NOVA TABELA: RECUPERAÇÃO DE SENHA E PRIMEIRO ACESSO
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  token     String    @unique @default(uuid())
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  used      Boolean   @default(false)
+  enabled   Boolean   @default(true) // SOFT DELETE
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
 }

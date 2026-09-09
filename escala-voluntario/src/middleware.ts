@@ -27,21 +27,65 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+  const path = request.nextUrl.pathname;
 
   const rotasProtegidas = ["/admin-master", "/admin", "/lider", "/voluntario"];
   const estaTentandoAcessarRotaProtegida = rotasProtegidas.some((rota) =>
-    request.nextUrl.pathname.startsWith(rota),
+    path.startsWith(rota),
   );
 
   if (!user && estaTentandoAcessarRotaProtegida) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (user && request.nextUrl.pathname === "/login") {
-    return NextResponse.redirect(new URL("/admin-master", request.url)); // isso aqui está de forma temporária.
+  if (user) {
+    // 1. Buscamos o cargo na tabela relacional "user_roles"
+    const { data: cargoData, error } = await supabase
+      .from("user_roles")
+      .select("roles(name)")
+      .eq("user_id", user.id)
+      .limit(1)
+      .single();
+
+    const rolesRetorno = cargoData?.roles as any;
+    
+    // 2. Se for um Array pegamos o primeiro [0], se for Objeto pegamos direto.
+    const role = (Array.isArray(rolesRetorno) ? rolesRetorno[0]?.name : rolesRetorno?.name) || "volunteer";
+
+
+    if (path.startsWith("/admin-master") && role !== "super_admin_global") {
+      return NextResponse.redirect(new URL("/login?error=unauthorized", request.url));
+    }
+
+    if (path.startsWith("/admin") && path !== "/admin-master" && role !== "admin" && role !== "super_admin_global") {
+      return NextResponse.redirect(new URL("/login?error=unauthorized", request.url));
+    }
+
+    if (path.startsWith("/lider") && role !== "leader" && role !== "admin" && role !== "super_admin_global") {
+      return NextResponse.redirect(new URL("/login?error=unauthorized", request.url));
+    }
+
+    
+    if (path === "/login") {
+      let dashboardPath = "/voluntario";
+
+      switch (role) {
+        case "super_admin_global":
+          dashboardPath = "/admin-master";
+          break;
+        case "admin":
+          dashboardPath = "/admin";
+          break;
+        case "leader":
+          dashboardPath = "/lider";
+          break;
+        case "volunteer":
+          dashboardPath = "/voluntario";
+          break;
+      }
+      return NextResponse.redirect(new URL(dashboardPath, request.url));
+    }
   }
 
   return response;
