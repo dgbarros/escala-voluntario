@@ -50,13 +50,16 @@ Antes de começar, você precisará ter instalado em sua máquina:
 * DATABASE_URL="sua_string_de_conexao_do_banco"
 
 4. **Inicie o banco de dados local com Docker Engine:**
+    ```bash
     docker compose up -d
 
-5. **Gere o client do Prisma e sincronize o banco:**
+6. **Gere o client do Prisma e sincronize o banco:**
+   ```bash
     npx prisma generate
     npx prisma db push
 
-6. **Inicie o servidor de desenvolvimento:**
+8. **Inicie o servidor de desenvolvimento:**
+   ```bash
     npm run dev
 
 O servidor iniciará localmente. Acesse http://localhost:3000 no seu navegador para ver a aplicação rodando.
