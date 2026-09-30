@@ -50,7 +50,7 @@ Antes de começar, você precisará ter instalado em sua máquina:
 * DATABASE_URL="sua_string_de_conexao_do_banco"
 
 4. **Inicie o banco de dados local com Docker Engine:**
-    docker compose up -d
+    npx supabase start
 
 5. **Gere o client do Prisma e sincronize o banco:**
     npx prisma generate
