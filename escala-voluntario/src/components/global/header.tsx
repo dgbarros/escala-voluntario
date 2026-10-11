@@ -19,7 +19,8 @@ interface HeaderProps{
     nome: string,
     email: string,
     cargoDisplay: string,
-    iniciais: string;
+    iniciais: string,
+    profileImage?: string | null;
   }
 }
 
@@ -47,7 +48,7 @@ export function Header({usuario}: HeaderProps) {
             })}
           >
             <Avatar className="h-10 w-10">
-              <AvatarImage src="/avatar-placeholder.png" alt="Seu Perfil" />
+              <AvatarImage src={usuario.profileImage || "/avatar-placeholder.png"} alt="Seu Perfil" />
               <AvatarFallback>{usuario.iniciais}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
@@ -66,13 +67,13 @@ export function Header({usuario}: HeaderProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/configuracoes/perfil')}>
                 <User className="mr-2 h-4 w-4" />
-                <span>Editar Perfil (Foto/Email)</span>
+                <span>Editar Perfil</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/configuracoes/seguranca')}>
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Alterar Senha</span>
+                <span>Segurança</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
 

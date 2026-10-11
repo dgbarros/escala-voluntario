@@ -37,7 +37,7 @@ export async function POST(request: Request) {
           type: 'invite',
           email: email,
           options: {
-            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/completar-cadastro` 
+            redirectTo:`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?next=/completar-cadastro`
           }
         })
 
