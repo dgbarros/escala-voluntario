@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 
         // D. Dispara o E-mail via Resend
         await resend.emails.send({
-          from: 'Escala Voluntário <não-responda@escalavoluntario.com.br>', 
+          from: 'Escala Voluntário <nao-responda@escalavoluntario.com.br>', 
           to: email,
           subject: `Você foi convidado para gerenciar: ${nome}`,
           html: `
