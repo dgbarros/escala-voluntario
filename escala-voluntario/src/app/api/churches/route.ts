@@ -69,8 +69,8 @@ export async function POST(request: Request) {
 
         // D. Dispara o E-mail via Resend
         await resend.emails.send({
-          from: 'Escala Voluntário <nao-responda@escalavoluntario.com.br>', 
-          to: email,
+          from: 'Escala Voluntário <onboarding@resend.dev>', // Em teste no Resend, só podemos usar o e-mail deles ou um domínio verificado
+          to: email, // O e-mail de teste precisa estar liberado lá no painel do Resend se o domínio não for verificado
           subject: `Você foi convidado para gerenciar: ${nome}`,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
