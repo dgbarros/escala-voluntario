@@ -37,7 +37,7 @@ export async function POST(request: Request) {
           type: 'invite',
           email: email,
           options: {
-            redirectTo:`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?next=/completar-cadastro`
+            redirectTo:`${process.env.NEXT_PUBLIC_SITE_URL}/completar-cadastro`
           }
         })
 
@@ -47,6 +47,7 @@ export async function POST(request: Request) {
 
         const novoUserId = linkData.user.id
         const linkDeConvite = linkData.properties.action_link
+        const linkEscudo = `${process.env.NEXT_PUBLIC_SITE_URL}/aceitar-convite?url=${encodeURIComponent(linkDeConvite)}`;
         
         await tx.user.create({
           data: { 
@@ -68,15 +69,15 @@ export async function POST(request: Request) {
 
         // D. Dispara o E-mail via Resend
         await resend.emails.send({
-          from: 'Escala Voluntário <onboarding@resend.dev>', // Em teste no Resend, só podemos usar o e-mail deles ou um domínio verificado
-          to: email, // O e-mail de teste precisa estar liberado lá no painel do Resend se o domínio não for verificado
+          from: 'Escala Voluntário <não-responda@escalavoluntario.com.br>', 
+          to: email,
           subject: `Você foi convidado para gerenciar: ${nome}`,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
               <h2>Bem-vindo ao Escala Voluntário!</h2>
               <p>Você foi designado como administrador para a igreja <strong>${nome}</strong>.</p>
               <p>Para definir sua senha e acessar o painel, clique no botão abaixo:</p>
-              <a href="${linkDeConvite}" style="display:inline-block; padding:12px 24px; background-color:#2563eb; color:#fff; text-decoration:none; border-radius:6px; font-weight:bold; margin-top:16px;">
+              <a href="${linkEscudo}" style="display:inline-block; padding:12px 24px; background-color:#2563eb; color:#fff; text-decoration:none; border-radius:6px; font-weight:bold; margin-top:16px;">
                 Completar meu Cadastro
               </a>
               <p style="margin-top:24px; font-size:12px; color:#666;">Este link é seguro e expira em 24 horas.</p>

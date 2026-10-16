@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Lock, Loader2, Save, ShieldAlert } from "lucide-react"
+import { NextResponse } from "next/server"
 
 export default function SegurancaForm() {
   const [isPending, setIsPending] = useState(false)
@@ -29,10 +30,30 @@ export default function SegurancaForm() {
 
     setIsPending(true)
     
-    // Aqui vai entrar a nossa chamada para a API de trocar senha no futuro!
+    try{
+      const response = await fetch('api/seguranca/senha',{
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senha: senha })
+      });
+
+      const data = await response.json()
+
+      if(!response.ok){
+        throw new Error(data.error || "Erro ao atualizar senha");
+      }
+
+      console.log("SENHA ALTERADA - INSERIR MODAL NO FRONT")
+      setSenha("");
+      setConfirmarSenha("");
+
+    }catch(error){
+      setErro("Erro ao alterar senha")
+    }finally{
+      setIsPending(false)
+    }
     
     setTimeout(() => {
-      setIsPending(false)
       setSenha("")
       setConfirmarSenha("")
     }, 1500)
