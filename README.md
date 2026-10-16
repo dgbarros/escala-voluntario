@@ -4,7 +4,7 @@ Um sistema SaaS completo e responsivo desenvolvido para facilitar a gestão de e
 
 ## Tecnologias e Decisões de Arquitetura
 
-Este projeto foi construído utilizando tecnologias modernas focadas em escalabilidade, segurança e experiência do desenvolvedor (DX). Abaixo estão as ferramentas escolhidas e o motivo de cada adoção:
+Este projeto foi construído utilizando tecnologias modernas focadas em escalabilidade, segurança e experiência do desenvolvedor. Abaixo estão as ferramentas escolhidas e o motivo de cada adoção:
 
 *   **Next.js (React + Node.js + TypeScript):** 
     O framework principal da aplicação. Escolhido pela sua excelente integração Full Stack, permitindo lidar com a interface (React), o backend (Node.js/API Routes) e a tipagem estática (TypeScript) em um único repositório. O Next.js garante praticidade, excelente usabilidade e alta escalabilidade com recursos nativos como SSR (Server-Side Rendering) e Server Components.
@@ -50,13 +50,16 @@ Antes de começar, você precisará ter instalado em sua máquina:
 * DATABASE_URL="sua_string_de_conexao_do_banco"
 
 4. **Inicie o banco de dados local com Docker Engine:**
-    npx supabase start
+    ```bash
+    docker compose up -d
 
-5. **Gere o client do Prisma e sincronize o banco:**
+6. **Gere o client do Prisma e sincronize o banco:**
+   ```bash
     npx prisma generate
     npx prisma db push
 
-6. **Inicie o servidor de desenvolvimento:**
+8. **Inicie o servidor de desenvolvimento:**
+   ```bash
     npm run dev
 
 O servidor iniciará localmente. Acesse http://localhost:3000 no seu navegador para ver a aplicação rodando.
