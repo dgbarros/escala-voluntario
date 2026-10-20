@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         await tx.user.create({
           data: { 
             id: novoUserId, 
-            name: 'Administrador Convidado', // Nome temporário
+            name: 'Administrador Convidado', 
             email: email, 
             role: 'admin', 
             churchId: novaIgreja.id 
@@ -67,10 +67,9 @@ export async function POST(request: Request) {
           }
         })
 
-        // D. Dispara o E-mail via Resend
         await resend.emails.send({
           from: 'Escala Voluntário <equipe@escalavoluntario.com.br>', 
-          to: email, // O e-mail de teste precisa estar liberado lá no painel do Resend se o domínio não for verificado
+          to: email,
           subject: `Você foi convidado para gerenciar: ${nome}`,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
