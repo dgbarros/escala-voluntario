@@ -105,8 +105,10 @@ export default function NovaIgrejaForm() {
     setIsPending(true);
 
     try {
-      // 1. Extraímos apenas os textos de e-mail da sua lista de objetos [{id: 1, email: "..."}]
       const listaDeEmails = admins.map((a) => a.email);
+
+      const cnpjLimpo = cnpj.replace(/\D/g, "");
+      const telefoneLimpo = telefone.replace(/\D/g, "");
 
       // 2. Chamamos a nova API via POST
       const response = await fetch("/api/churches", {
@@ -114,8 +116,8 @@ export default function NovaIgrejaForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nome,
-          cnpj,
-          telefone,
+          cnpj: cnpjLimpo,
+          telefone: telefoneLimpo,
           admins: listaDeEmails,
         }),
       });
@@ -128,11 +130,10 @@ export default function NovaIgrejaForm() {
         return;
       }
 
-      // 3. Sucesso! Mostra um alerta amigável e redireciona de volta para a lista
       alert(
         "Igreja criada! O link de acesso foi enviado para os administradores.",
       );
-      router.push("/admin-master"); // ou a rota que mostra a tabela de igrejas
+      router.push("/admin-master"); 
     } catch (err) {
       setErrors({ geral: "Falha na comunicação com o servidor." });
       setIsPending(false);
