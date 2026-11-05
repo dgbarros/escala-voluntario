@@ -15,6 +15,7 @@ import { ArrowLeft, Building2, Send, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function NovaIgrejaForm() {
   const [nome, setNome] = useState("");
@@ -130,9 +131,7 @@ export default function NovaIgrejaForm() {
         return;
       }
 
-      alert(
-        "Igreja criada! O link de acesso foi enviado para os administradores.",
-      );
+     toast.success("Igreja criada com sucesso e link enviado para administradores!")
       router.push("/admin-master"); 
     } catch (err) {
       setErrors({ geral: "Falha na comunicação com o servidor." });

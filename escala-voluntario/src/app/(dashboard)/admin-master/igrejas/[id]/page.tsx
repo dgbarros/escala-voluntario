@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import { Building2, Users } from 'lucide-react'
 import BotaoReenviar from '@/components/dashboard/admin-master/botao-reenviar' 
+import BotaoDeletarIgreja from '@/components/dashboard/admin-master/botao-deletar'
+import ModalEditarIgreja from '@/components/dashboard/admin-master/moda-editar-igreja'
 
 //Aqui irei precisar reestruturar, é apenas temporário. 
 
@@ -33,6 +35,14 @@ export default async function DetalhesIgreja({ params }: { params: { id: string 
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{igreja.name}</h1>
           <p className="text-sm text-gray-500">Detalhes e administração da congregação</p>
+        </div>
+       <div className="flex gap-2">
+          <ModalEditarIgreja 
+            id={igreja.id} 
+            nomeAtual={igreja.name} 
+            cnpjAtual={igreja.cnpj} 
+          />
+          <BotaoDeletarIgreja idIgreja={igreja.id} />
         </div>
       </div>
 
